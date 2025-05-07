@@ -57,6 +57,7 @@ class MultiSeriesEvaluator:
         from sktime.forecasting.theta import ThetaForecaster
         from sktime.forecasting.auto_reg import AutoREG
         from sktime.forecasting.fbprophet import Prophet
+        from sktime.forecasting.neuralforecast import NeuralForecastLSTM
         from tqdm import tqdm
         channels = self.df[self.channel_col].unique()
         total_tasks = len(channels) * len(self.metric_cols)
@@ -78,17 +79,15 @@ class MultiSeriesEvaluator:
                     evaluator = TimeSeriesEvaluator(y=y, initial_window=initial_window, step_length=step_length, h=h)
 
                     models = {
-                        "AutoARIMA": AutoARIMA(),
-                        "Theta": ThetaForecaster(sp=1),
-                        "ETS": AutoETS(sp=1),
-                        "Prophet": Prophet(
-                            seasonality_mode='multiplicative',
-                            n_changepoints=int(len(y) / 12)
-                        ),
+                        #"AutoARIMA": AutoARIMA(),
+                        #"Theta": ThetaForecaster(sp=1),
+                        #"ETS": AutoETS(sp=1),
+                        #"Prophet": Prophet(seasonality_mode='multiplicative',n_changepoints=int(len(y) / 12)),
                         "AutoREG(2)": AutoREG(lags=2),
                         "AutoREG(3)": AutoREG(lags=3),
                         "AutoREG(4)": AutoREG(lags=4),
-                        "AutoREG(5)": AutoREG(lags=5)
+                        "AutoREG(5)": AutoREG(lags=5),
+                        "Neural Forecast":NeuralForecastLSTM(max_steps=10)
                     }
                     
 
