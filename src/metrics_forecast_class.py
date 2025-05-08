@@ -1,12 +1,39 @@
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-
 from sktime.split import ExpandingWindowSplitter
 from sktime.forecasting.model_evaluation import evaluate
 from sktime.performance_metrics.forecasting import MeanAbsoluteError,MeanSquaredError,MeanAbsolutePercentageError
+from sktime.forecasting.arima import AutoARIMA
+from sktime.forecasting.ets import AutoETS
+from sktime.forecasting.theta import ThetaForecaster
+from sktime.forecasting.auto_reg import AutoREG
+from sktime.forecasting.fbprophet import Prophet
+from sktime.forecasting.neuralforecast import NeuralForecastLSTM,NeuralForecastRNN
+from sktime.forecasting.arima import ARIMA
 from function_logger import get_logger
 logger=get_logger('metrics_forecast')
+
+models_dict = {
+        "AutoARIMA": AutoARIMA(),
+        "Theta": ThetaForecaster(sp=1),
+        "ETS": AutoETS(sp=1,auto=True,allow_multiplicative_trend=True),
+        "Prophet": Prophet(seasonality_mode='multiplicative'),
+        "AutoREG(2)": AutoREG(lags=2),
+        "AutoREG(3)": AutoREG(lags=3),
+        "AutoREG(4)": AutoREG(lags=4),
+        "AutoREG(5)": AutoREG(lags=5),
+        "AR(2)":ARIMA(order=(2,0,0)),
+        "AR(3)":ARIMA(order=(3,0,0)),
+        "AR(4)":ARIMA(order=(4,0,0)),
+        "AR(5)":ARIMA(order=(5,0,0)),
+        "MA(2)":ARIMA(order=(0,0,2)),
+        "MA(3)":ARIMA(order=(0,0,3)),
+        "MA(4)":ARIMA(order=(0,0,4)),
+        "MA(5)":ARIMA(order=(0,0,5)),
+        "Neural Forecast LTSM":NeuralForecastLSTM(max_steps=100),
+        "Neural Forecast RNN":NeuralForecastRNN(max_steps=100),
+    }
 class TimeSeriesEvaluator:
     def __init__(self, y, initial_window=12, step_length=6, h=6, lags=6):
         self.y_raw = y.copy()
@@ -52,38 +79,8 @@ class MultiSeriesEvaluator:
         self.results = []
         self.trained=[]
 
-    def run(self,metric_cols=None, h=6, initial_window=12, step_length=6,models=['AutoARIMA', 'Theta', 'ETS', 'Prophet',
-     'AutoREG(2)', 'AutoREG(3)', 'AutoREG(4)', 'AutoREG(5)', 'Neural Forecast LTSM'],max_periods=50):
-        from sktime.forecasting.arima import AutoARIMA
-        from sktime.forecasting.ets import AutoETS
-        from sktime.forecasting.theta import ThetaForecaster
-        from sktime.forecasting.auto_reg import AutoREG
-        from sktime.forecasting.fbprophet import Prophet
-        from sktime.forecasting.neuralforecast import NeuralForecastLSTM,NeuralForecastRNN
-        from sktime.forecasting.arima import ARIMA
-        from tqdm import tqdm
+    def run(self,metric_cols=None, h=6, initial_window=12, step_length=6,models=['AutoARIMA', 'Theta', 'ETS'],models_dict=models_dict,max_periods=50):
         channels = self.df[self.channel_col].unique()
-        
-        models_dict = {
-                "AutoARIMA": AutoARIMA(),
-                "Theta": ThetaForecaster(sp=1),
-                "ETS": AutoETS(sp=1,auto=True,allow_multiplicative_trend=True),
-                "Prophet": Prophet(seasonality_mode='multiplicative'),
-                "AutoREG(2)": AutoREG(lags=2),
-                "AutoREG(3)": AutoREG(lags=3),
-                "AutoREG(4)": AutoREG(lags=4),
-                "AutoREG(5)": AutoREG(lags=5),
-                "AR(2)":ARIMA(order=(2,0,0)),
-                "AR(3)":ARIMA(order=(3,0,0)),
-                "AR(4)":ARIMA(order=(4,0,0)),
-                "AR(5)":ARIMA(order=(5,0,0)),
-                "MA(2)":ARIMA(order=(0,0,2)),
-                "MA(3)":ARIMA(order=(0,0,3)),
-                "MA(4)":ARIMA(order=(0,0,4)),
-                "MA(5)":ARIMA(order=(0,0,5)),
-                "Neural Forecast LTSM":NeuralForecastLSTM(max_steps=100),
-                "Neural Forecast RNN":NeuralForecastRNN(max_steps=100),
-            }
         ##filter models to be applied
         models_dict = {k: v for k, v in models_dict.items() if k in models}
         total_tasks = len(channels) * len(metric_cols)* len(models_dict.items())
