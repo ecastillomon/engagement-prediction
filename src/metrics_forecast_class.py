@@ -31,8 +31,8 @@ models_dict = {
         "MA(3)":ARIMA(order=(0,0,3)),
         "MA(4)":ARIMA(order=(0,0,4)),
         "MA(5)":ARIMA(order=(0,0,5)),
-        "Neural Forecast LTSM":NeuralForecastLSTM(max_steps=100),
-        "Neural Forecast RNN":NeuralForecastRNN(max_steps=100),
+        "Neural Forecast LTSM":NeuralForecastLSTM(max_steps=10),
+        "Neural Forecast RNN":NeuralForecastRNN(max_steps=10),
     }
 class TimeSeriesEvaluator:
     def __init__(self, y, initial_window=12, step_length=6, h=6, lags=6):
