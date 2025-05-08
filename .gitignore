@@ -1,0 +1,9 @@
+data/
+cache/
+src/__pycache__/
+log/
+*.Rproj*
+.*Rhistory
+*.pdf
+.venv
+venv
