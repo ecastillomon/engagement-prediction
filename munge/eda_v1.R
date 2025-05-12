@@ -41,7 +41,9 @@ mean(df$return>=.025)
 ##2.2
 ##Var 99 
 alpha=.99
-u=.025
+u=.01
+scale.u10
+fit.u205 <- fit_GPD_MLE(df$return[df$return > u])
 (VaR.u025 <- VaR_GPDtail(alpha, threshold = u, p.exceed = mean(df$return > u),
                          shape = shape, scale = scale))
 (ES.u025 <- ES_GPDtail(alpha, threshold = u, p.exceed = mean(df$return > u),
