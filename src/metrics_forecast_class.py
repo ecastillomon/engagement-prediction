@@ -57,6 +57,7 @@ class TimeSeriesEvaluator:
             "test_MeanSquaredError"
         ]
         self.results = {}
+        self.results_complete = {}
     def evaluate_sktime_model(self, name, forecaster):
         res = evaluate(
             forecaster=forecaster,
@@ -68,9 +69,12 @@ class TimeSeriesEvaluator:
             return_data=True,
             return_model=False
         )
+        self.results_complete[name] = res
         self.results[name] = res[self.scoring_columns].mean()
     def get_results_df(self):
         return pd.DataFrame(self.results)
+    def get_results_complete_df(self):
+        return self.results_complete
 
 class MultiSeriesEvaluator:
     def __init__(self, df, date_col='published_date', channel_col='channel_uid'):
@@ -78,6 +82,7 @@ class MultiSeriesEvaluator:
         self.date_col = date_col
         self.channel_col = channel_col
         self.results = []
+        self.results_complete=[]
         self.trained=[]
 
     def run(self,metric_cols=None, h=6, initial_window=12, step_length=6,models=['AutoARIMA', 'Theta', 'ETS'],models_dict=models_dict,max_periods=50):
@@ -112,11 +117,23 @@ class MultiSeriesEvaluator:
                                 evaluator.evaluate_sktime_model(model_name, model)
                             except Exception as e:
                                 logger.info(f"Failed {model_name} for {channel}/{metric}: {e}")
+                            ##Results    
                             model_results = evaluator.get_results_df().T.reset_index().rename(columns={"index": "model_name"})
                             model_results[self.channel_col] = channel
                             model_results["metric_name"] = metric
                             model_results["source"] = source
+                            ##Results complete
+                            model_results_complete=evaluator.get_results_complete_df()[model_name]
+                            model_results_complete=model_results_complete.assign(model_name=model_name,
+                                                          channel=channel,
+                                                         metric_name=metric,
+                                                         source=source)
+                            #model_results_complete[self.channel_col] = channel
+                            #model_results_complete["metric_name"] = metric
+                            #model_results_complete["source"] = source
+
                             self.results.append(model_results)
+                            self.results_complete.append(model_results_complete)
                             self.trained.append(experiment_name)
                         else:
                             logger.info(f"Already evaluated {model_name} for {channel}/{metric}")     
@@ -125,3 +142,5 @@ class MultiSeriesEvaluator:
 
     def get_summary(self):
         return pd.concat(self.results, ignore_index=True)
+    def get_summary_complete(self):
+        return pd.concat(self.results_complete, ignore_index=True)
