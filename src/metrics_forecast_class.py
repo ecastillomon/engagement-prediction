@@ -14,6 +14,10 @@ from sktime.forecasting.arima import ARIMA
 from function_logger import get_logger
 
 logger=get_logger('metrics_forecast')
+import warnings
+
+# Suppress all warnings
+warnings.filterwarnings("ignore")
 
 models_dict = {
         "AutoARIMA": AutoARIMA(),
@@ -64,9 +68,10 @@ class TimeSeriesEvaluator:
             y=self.y,
             cv=self.cv,
             scoring=self.scoring,
-            strategy="update",
+            strategy="refit",
             return_data=True,
-            return_model=False
+            return_model=False,
+            backend='loky'
         )
         self.results_complete[name] = res
         self.results[name] = res[self.scoring_columns].mean()
