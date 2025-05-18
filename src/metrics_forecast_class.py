@@ -64,8 +64,7 @@ class TimeSeriesEvaluator:
             y=self.y,
             cv=self.cv,
             scoring=self.scoring,
-            error_score='raise',
-            strategy="refit",
+            strategy="update",
             return_data=True,
             return_model=False
         )
@@ -116,26 +115,22 @@ class MultiSeriesEvaluator:
                             try:
                                 evaluator = TimeSeriesEvaluator(y=y, initial_window=initial_window, step_length=step_length, h=h)
                                 evaluator.evaluate_sktime_model(model_name, model)
+                                ##Results    
+                                model_results = evaluator.get_results_df().T.reset_index().rename(columns={"index": "model_name"})
+                                model_results[self.channel_col] = channel
+                                model_results["metric_name"] = metric
+                                model_results["source"] = source
+                                ##Results complete
+                                model_results_complete=evaluator.get_results_complete_df()[model_name]
+                                model_results_complete=model_results_complete.assign(model_name=model_name,
+                                                            channel=channel,
+                                                            metric_name=metric,
+                                                            source=source)
+                                self.results.append(model_results)
+                                self.results_complete.append(model_results_complete)
+                                self.trained.append(experiment_name)    
                             except Exception as e:
                                 logger.info(f"Failed {model_name} for {channel}/{metric}: {e}")
-                            ##Results    
-                            model_results = evaluator.get_results_df().T.reset_index().rename(columns={"index": "model_name"})
-                            model_results[self.channel_col] = channel
-                            model_results["metric_name"] = metric
-                            model_results["source"] = source
-                            ##Results complete
-                            model_results_complete=evaluator.get_results_complete_df()[model_name]
-                            model_results_complete=model_results_complete.assign(model_name=model_name,
-                                                          channel=channel,
-                                                         metric_name=metric,
-                                                         source=source)
-                            #model_results_complete[self.channel_col] = channel
-                            #model_results_complete["metric_name"] = metric
-                            #model_results_complete["source"] = source
-
-                            self.results.append(model_results)
-                            self.results_complete.append(model_results_complete)
-                            self.trained.append(experiment_name)
                         else:
                             logger.info(f"Already evaluated {model_name} for {channel}/{metric}")     
                         pbar.update(1)
