@@ -1,6 +1,7 @@
 library(dplyr)
 library(ggplot2)
 library(purrr)
+library(lubridate)
 source('lib/load_files.R')
 df_sum=df_full %>% group_by(channel_uid) %>% arrange(publishedDate) %>% 
   summarise(n=n(),starting_audience=first(potentialReach),
@@ -108,3 +109,24 @@ df_full %>% filter(channel_uid=='c149b6fafe123318b768e2e1c716abeb') %>% arrange(
 
 df_full %>% filter(channel_uid=='44aac43453f33f5d9ff09e28a8f8dabc') %>% arrange(publishedDate) %>% 
   ggplot(aes(x=publishedDate,y=engagements_rate))+geom_line()+ scale_y_log10()
+
+
+
+df_forecast_results=c('output/summary_complete_df_2505121209.csv') %>% 
+  purrr::map_dfr(function(x){read.csv(x)} )
+
+
+models_by_audience <- df_sum_f %>%
+  group_by(source) %>%
+  nest() %>%
+  mutate(
+    model = map(data, ~ lm(test_MeanAbsoluteError ~ last_audience, data = .x)),
+    summary = map(model, glance),
+    coefficients = map(model, tidy)
+  ) %>% ungroup() %>% select(-data)
+models_by_audience_sum=models_by_audience %>% select(source, summary) %>% unnest()
+
+
+df_sum_f %>% ggplot(aes(x=observed_audience_change,y=test_MeanAbsoluteError))+geom_point()+scale_y_log10()+scale_x_log10()
+
+df_full %>% filter(channel_uid=="c149b6fafe123318b768e2e1c716abeb") %>% ggplot(aes(x=published_date,y=engagements_rate))+geom_line()+scale_y_log10()

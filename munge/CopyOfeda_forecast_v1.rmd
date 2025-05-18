@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 ## Introduction
 
-This document analyzes audience changes for content creators, focusing on the relationship between audience, its own past values, recent engagement, and posts per day. 
+This document analyzes influencer audience changes, focusing on the relationship between potential reach and engagement rates, posts per day, and 
 
 
 
@@ -46,7 +46,7 @@ models_audience_change %>%
     title = "R-squared of Audience Change vs. Posts per Day",
     x = "Audience Tier",
     y = "R-squared"
-  ) + 
+  ) +
   theme_minimal()
 models_audience_change %>%
   select( coefficients,source) %>%

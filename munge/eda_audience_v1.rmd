@@ -2,13 +2,7 @@
 title: "Influencer Audience Growth Analysis"
 author: "Esteban Castillo"
 date: "`r Sys.Date()`"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    theme: flatly
-    highlight: tango
-    code_folding: show
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}

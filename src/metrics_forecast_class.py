@@ -35,18 +35,18 @@ models_dict = {
         "Neural Forecast LTSM":NeuralForecastLSTM(max_steps=10),
         "Neural Forecast RNN":NeuralForecastRNN(max_steps=10),
     }
+max_periods=None
 class TimeSeriesEvaluator:
-    def __init__(self, y, initial_window=12, step_length=6, h=6, lags=6):
+    def __init__(self, y, initial_window=12, step_length=6, h=6):
         self.y_raw = y.copy()
         self.y = y.reset_index(drop=True)  # use positional index
         self.h = h
-        self.lags = lags
+        #self.lags = lags
         self.cv = ExpandingWindowSplitter(
             initial_window=initial_window,
             step_length=step_length,
             fh=np.arange(1, h + 1)
         )
-
         self.scoring = [
                 MeanAbsoluteError(),
                 MeanSquaredError(square_root=True),
@@ -85,7 +85,7 @@ class MultiSeriesEvaluator:
         self.results_complete=[]
         self.trained=[]
 
-    def run(self,metric_cols=None, h=6, initial_window=12, step_length=6,models=['AutoARIMA', 'Theta', 'ETS'],models_dict=models_dict,max_periods=50):
+    def run(self,metric_cols=None, h=6, initial_window=12, step_length=6,models=['AutoARIMA', 'Theta', 'ETS'],models_dict=models_dict,max_periods=max_periods):
         channels = self.df[self.channel_col].unique()
         ##filter models to be applied
         models_dict = {k: v for k, v in models_dict.items() if k in models}
@@ -98,8 +98,9 @@ class MultiSeriesEvaluator:
                 df_channel = df_channel\
                     .sort_values(self.date_col)\
                     .set_index(self.date_col)\
-                    .sort_index()\
-                    .head(max_periods)
+                    .sort_index()
+                if max_periods is not None:    
+                    df_channel=df_channel.head(max_periods)
                 source=df_channel['source'].iloc[0]
                 for metric in metric_cols:
                     logger.info(f"Evaluating metric: {metric}")
