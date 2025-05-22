@@ -34,11 +34,12 @@ df_forecast_optim=df_forecast %>% group_by(channel_uid,metric_name) %>%
 # df_forecast_sum=df_forecast_optim %>% group_by(source,model_name,metric_name) %>% summarise(n=n()) %>% ungroup()
 
 
-df_sum_f=df_sum %>% left_join(df_forecast_optim %>% filter(metric_name=='engagements_rate') %>% select(-source),by=c('channel_uid'))
+df_sum_f=df_sum %>% left_join(df_forecast_optim %>% filter(metric_name=='potentialReach') %>% select(-source),by=c('channel_uid'))
 df_forecast_sum=df_sum_f %>% 
-  group_by(source,metric_name,tier) %>% 
+  group_by(source,metric_name) %>% 
   summarise(n=n(),across(matches('test_'),list(mean=mean,max=max,min=min),.names="{.col}_{.fn}" )) %>% ungroup()
 
+df_sum_f %>% group_by(model_name) %>% count()
 
 df_forecast_sum %>% 
   ggplot(aes(x=tier,y=test_MeanAbsoluteError_mean))+geom_col()+facet_wrap(source~.)
